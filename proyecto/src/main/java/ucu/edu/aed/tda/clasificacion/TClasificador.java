@@ -38,11 +38,30 @@ public abstract class TClasificador {
         }
     }
 
+    public void quicksortIngenuo(int[] datos) {
+        quicksortIngenuo(datos, 0, datos.length - 1);
+    }
+
+    private void quicksortIngenuo(int[] datos, int i, int j) {
+        if (i <= j) {
+            int indicePivote = obtenerPivoteIngenuo(datos, i, j);
+            // debe ser un rango válido
+            if (indicePivote >= i && indicePivote < j) {
+                int pivote = datos[indicePivote];
+                int k = particion(datos, i, j, pivote);
+                quicksortIngenuo(datos, i, k - 1);
+                quicksortIngenuo(datos, k, j);
+            }
+        }
+    }
+
     /**
      * método auxiliar y utilizado en quicksort
      * devuelve un valor del vector ubicado entre i <= x < j
      */
     protected abstract int obtenerPivote(int[] datos, int i, int j);
+
+    protected abstract int obtenerPivoteIngenuo(int[] datos, int i, int j);
 
     /**
      * método auxiliar y utilizado en quicksort

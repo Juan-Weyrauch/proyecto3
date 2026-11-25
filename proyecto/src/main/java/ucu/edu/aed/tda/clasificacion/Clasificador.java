@@ -64,6 +64,21 @@ public class Clasificador extends TClasificador {
             return medio;
         }
     }
+    @Override
+    protected int obtenerPivoteIngenuo(int[] datos, int i, int j) {
+        if (i >= j) {
+            return -1;
+        }
+        if (i + 1 == j) {
+            return i;
+        }
+        int maximo = Math.max(datos[i], datos[i + 1]);
+        if (maximo == datos[i]) {
+            return i;
+        }
+        return i + 1;
+    }
+
 
     @Override
     protected int particion(int[] datos, int i, int j, int pivote) {

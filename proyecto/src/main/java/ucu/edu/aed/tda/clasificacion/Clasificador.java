@@ -1,6 +1,6 @@
 package ucu.edu.aed.tda.clasificacion;
 import java.util.Arrays;
-
+import java.util.ArrayList;
 
 public class Clasificador extends TClasificador {
     @Override
@@ -126,27 +126,181 @@ public class Clasificador extends TClasificador {
 
     @Override
     public void cuentaPorDistribucion(int[] datos) {
+        if (datos.length < 2) {
+            return;
+        }
 
+        int[] rango = obtenerRango(datos);
+        int minimo = rango[0];
+        long amplitud = (long) rango[1] - minimo + 1;
+
+        if (amplitud > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("El rango de claves es demasiado grande");
+        }
+
+        int[] cuenta = new int[(int) amplitud];
+        int[] salida = new int[datos.length];
+
+        for (int i = 0; i < datos.length; i++) {
+            cuenta[datos[i] - minimo]++;
+        }
+
+        for (int i = 1; i < cuenta.length; i++) {
+            cuenta[i] = cuenta[i] + cuenta[i - 1];
+        }
+
+        for (int i = datos.length - 1; i >= 0; i--) {
+            int clave = datos[i] - minimo;
+            int posicion = cuenta[clave] - 1;
+            salida[posicion] = datos[i];
+            cuenta[clave]--;
+        }
+
+        for (int i = 0; i < datos.length; i++) {
+            datos[i] = salida[i];
+        }
     }
 
     @Override
     public void binsort(int[] datos) {
+        if (datos.length < 2) {
+            return;
+        }
 
+        int[] rango = obtenerRango(datos);
+        int minimo = rango[0];
+        long amplitud = (long) rango[1] - minimo + 1;
+
+        if (amplitud > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("El rango de claves es demasiado grande");
+        }
+
+        int cantidadUrnas = (int) amplitud;
+        ArrayList<ArrayList<Integer>> urnas = new ArrayList<>();
+
+        for (int i = 0; i < cantidadUrnas; i++) {
+            urnas.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < datos.length; i++) {
+            int indice = datos[i] - minimo;
+            urnas.get(indice).add(datos[i]);
+        }
+
+        int posicion = 0;
+
+        for (int i = 0; i < cantidadUrnas; i++) {
+            ArrayList<Integer> urna = urnas.get(i);
+
+            for (int j = 0; j < urna.size(); j++) {
+                datos[posicion] = urna.get(j);
+                posicion++;
+            }
+        }
     }
 
     @Override
     public void bucketsort(int[] datos, int cantidadUrnas) {
+        if (cantidadUrnas <= 0) {
+            throw new IllegalArgumentException("La cantidad de urnas debe ser positiva");
+        }
 
+        if (datos.length < 2) {
+            return;
+        }
+
+        int[] rango = obtenerRango(datos);
+        int minimo = rango[0];
+        long amplitud = (long) rango[1] - minimo + 1;
+        ArrayList<ArrayList<Integer>> urnas = new ArrayList<>();
+
+        for (int i = 0; i < cantidadUrnas; i++) {
+            urnas.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < datos.length; i++) {
+            long distancia = (long) datos[i] - minimo;
+            int indice = (int) ((distancia * cantidadUrnas) / amplitud);
+            urnas.get(indice).add(datos[i]);
+        }
+
+        int posicion = 0;
+
+        for (int i = 0; i < cantidadUrnas; i++) {
+            ArrayList<Integer> urna = urnas.get(i);
+
+            for (int j = 1; j < urna.size(); j++) {
+                int aux = urna.get(j);
+                int anterior = j - 1;
+
+                while (anterior >= 0 && aux < urna.get(anterior)) {
+                    urna.set(anterior + 1, urna.get(anterior));
+                    anterior--;
+                }
+
+                urna.set(anterior + 1, aux);
+            }
+
+            for (int j = 0; j < urna.size(); j++) {
+                datos[posicion] = urna.get(j);
+                posicion++;
+            }
+        }
     }
 
     @Override
     public void radixsort(int[] datos, int base) {
+        if (base < 2) {
+            throw new IllegalArgumentException("La base debe ser mayor o igual a 2");
+        }
 
+        if (datos.length == 0) {
+            return;
+        }
+
+        int[] rango = obtenerRango(datos);
+
+        if (rango[0] < 0) {
+            throw new IllegalArgumentException("Los valores deben ser no negativos");
+        }
+
+        int maximo = rango[1];
+        int exponente = 1;
+
+        while (maximo / exponente > 0) {
+            distribuirPorDigito(datos, exponente, base);
+
+            if (exponente > maximo / base) {
+                break;
+            }
+
+            exponente = exponente * base;
+        }
     }
 
     @Override
     protected void distribuirPorDigito(int[] datos, int exponente, int base) {
+        ArrayList<ArrayList<Integer>> urnas = new ArrayList<>();
 
+        for (int i = 0; i < base; i++) {
+            urnas.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < datos.length; i++) {
+            int digito = (datos[i] / exponente) % base;
+            urnas.get(digito).add(datos[i]);
+        }
+
+        int posicion = 0;
+
+        for (int i = 0; i < base; i++) {
+            ArrayList<Integer> urna = urnas.get(i);
+
+            for (int j = 0; j < urna.size(); j++) {
+                datos[posicion] = urna.get(j);
+                posicion++;
+            }
+        }
     }
 
 

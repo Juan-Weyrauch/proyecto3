@@ -2,6 +2,41 @@ package ucu.edu.aed.tda.clasificacion;
 
 public abstract class TClasificador {
 
+    private long comparaciones;
+    private long movimientos;
+
+    public long getComparaciones() {
+        return comparaciones;
+    }
+
+    public long getMovimientos() {
+        return movimientos;
+    }
+
+    public void reiniciarContadores() {
+        comparaciones = 0;
+        movimientos = 0;
+    }
+
+    protected void contarComparacion() {
+        comparaciones++;
+    }
+
+    protected void contarComparaciones(long cantidad) {
+        comparaciones += cantidad;
+    }
+
+    /**
+     * Registra un movimiento (un intercambio o un desplazamiento de elemento).
+     */
+    protected void contarMovimiento() {
+        movimientos++;
+    }
+
+    protected void contarMovimientos(long cantidad) {
+        movimientos += cantidad;
+    }
+
     /**
      * Ordena el vector por inserción directa
      */
@@ -19,6 +54,7 @@ public abstract class TClasificador {
 
 
     public void quicksort(int[] datos) {
+        reiniciarContadores();
         quicksort(datos, 0, datos.length - 1);
     }
 
@@ -39,6 +75,7 @@ public abstract class TClasificador {
     }
 
     public void quicksortIngenuo(int[] datos) {
+        reiniciarContadores();
         quicksortIngenuo(datos, 0, datos.length - 1);
     }
 
@@ -144,6 +181,7 @@ public abstract class TClasificador {
         int aux = datos[i];
         datos[i] = datos[j];
         datos[j] = aux;
+        contarMovimiento();
     }
 
     /**

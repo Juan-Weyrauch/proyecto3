@@ -1,18 +1,27 @@
 package ucu.edu.aed.tda.clasificacion;
 import java.util.Arrays;
 import java.util.ArrayList;
+import ucu.edu.aed.tda.clasificacion.datos.Transaccion;
 
 public class Clasificador extends TClasificador {
     @Override
     void insercionDirecta(int[] datos) {
+        reiniciarContadores();
         for (int i = 1; i < datos.length; i++) {
             int aux = datos[i];
             int anterior = (i - 1);
-            while ((anterior >= 0) && (aux < datos[anterior])) {
-                datos[anterior + 1] = datos[anterior];
-                anterior--;
+            while (anterior >= 0) {
+                contarComparacion();
+                if (aux < datos[anterior]) {
+                    datos[anterior + 1] = datos[anterior];
+                    contarMovimiento();
+                    anterior--;
+                } else {
+                    break;
+                }
             }
             datos[anterior + 1] = aux;
+            contarMovimiento();
         }
     }
 
@@ -20,24 +29,34 @@ public class Clasificador extends TClasificador {
 
     @Override
     void shell(int[] datos, Integer[] incrementos) {
+        reiniciarContadores();
         for (int i = 0; i < incrementos.length; i++) {
             int salto = incrementos[i];
             for (int k = salto; k < datos.length; k++) {
                 int aux = datos[k];
                 int puntero = (k - salto);
-                while (puntero >= 0 && (aux < datos[puntero])) {
-                    datos[puntero + salto] = datos[puntero];
-                    puntero -= salto;
+                while (puntero >= 0) {
+                    contarComparacion();
+                    if (aux < datos[puntero]) {
+                        datos[puntero + salto] = datos[puntero];
+                        contarMovimiento();
+                        puntero -= salto;
+                    } else {
+                        break;
+                    }
                 }
                 datos[puntero + salto] = aux;
+                contarMovimiento();
             }
         }
     }
 
     @Override
     void burbuja(int[] datos) {
+        reiniciarContadores();
         for (int i = 0; i < datos.length - 1; i++) {
             for (int j = datos.length - 1; j > i; j--) {
+                contarComparacion();
                 if (datos[j] < datos[j - 1]) {
                     intercambiar(datos, j, j - 1);
                 }
@@ -46,29 +65,67 @@ public class Clasificador extends TClasificador {
     }
 
     @Override
-protected int obtenerPivote(int[] datos, int i, int j) {
-    int distinto = i + 1;
+    protected int obtenerPivote(int[] datos, int i, int j) {
+        if (i >= j) {
+            return -1;
+        }
 
-    while (distinto <= j && datos[distinto] == datos[i]) {
-        distinto++;
+        int medio = i + (j - i) / 2;
+        contarComparacion();
+        boolean igualMedio = datos[i] == datos[medio];
+        contarComparacion();
+        boolean igualFin = datos[i] == datos[j];
+
+        if (igualMedio && igualFin) {
+            int distinto = i + 1;
+            while (distinto <= j) {
+                contarComparacion();
+                if (datos[distinto] == datos[i]) {
+                    distinto++;
+                } else {
+                    break;
+                }
+            }
+            if (distinto > j) {
+                return -1;
+            }
+            contarComparacion();
+            if (datos[i] > datos[distinto]) {
+                return i;
+            }
+            if (distinto < j) {
+                return distinto;
+            }
+            intercambiar(datos, i, j);
+            return i;
+        }
+
+        int indiceMediana = medianaDeTres(datos, i, medio, j);
+        if (indiceMediana == j) {
+            intercambiar(datos, i, j);
+            return i;
+        }
+        return indiceMediana;
     }
 
-    if (distinto > j) {
-        return -1;  // Todo el rango tiene el mismo valor.
+    private int medianaDeTres(int[] datos, int a, int b, int c) {
+        contarComparacion();
+        if (datos[a] < datos[b]) {
+            contarComparacion();
+            if (datos[b] < datos[c]) {
+                return b;
+            }
+            contarComparacion();
+            return datos[a] < datos[c] ? c : a;
+        } else {
+            contarComparacion();
+            if (datos[a] < datos[c]) {
+                return a;
+            }
+            contarComparacion();
+            return datos[b] < datos[c] ? c : b;
+        }
     }
-
-    if (datos[i] > datos[distinto]) {
-        return i;
-    }
-
-    if (distinto < j) {
-        return distinto;
-    }
-
-    // El mayor está en j, pero el quicksort base exige un índice menor que j.
-    intercambiar(datos, i, j);
-    return i;
-}
     @Override
     protected int obtenerPivoteIngenuo(int[] datos, int i, int j) {
         if (i >= j) {
@@ -77,6 +134,7 @@ protected int obtenerPivote(int[] datos, int i, int j) {
         if (i + 1 == j) {
             return i;
         }
+        contarComparacion();
         int maximo = Math.max(datos[i], datos[i + 1]);
         if (maximo == datos[i]) {
             return i;
@@ -91,11 +149,21 @@ protected int obtenerPivote(int[] datos, int i, int j) {
         int derecha = j;
 
         while (izquierda <= derecha) {
-            while (datos[izquierda] < pivote) {
-                izquierda++;
+            while (true) {
+                contarComparacion();
+                if (datos[izquierda] < pivote) {
+                    izquierda++;
+                } else {
+                    break;
+                }
             }
-            while (datos[derecha] > pivote) {
-                derecha--;
+            while (true) {
+                contarComparacion();
+                if (datos[derecha] > pivote) {
+                    derecha--;
+                } else {
+                    break;
+                }
             }
             if (izquierda <= derecha) {
                 intercambiar(datos, izquierda, derecha);
@@ -109,10 +177,12 @@ protected int obtenerPivote(int[] datos, int i, int j) {
 
     @Override
     public void clasificacionDirecta(int[] datos) {
+        reiniciarContadores();
         for (int i = 0; i < datos.length; i++) {
             int indiceDelMenor = i;
             int valorMenor = datos[i];
             for (int k = i + 1; k < datos.length; k++) {
+                contarComparacion();
                 if (datos[k] < valorMenor) {
                     indiceDelMenor = k;
                     valorMenor = datos[k];
@@ -124,6 +194,7 @@ protected int obtenerPivote(int[] datos, int i, int j) {
 
     @Override
     public void heapsort(int[] datos) {
+        reiniciarContadores();
         int n = datos.length;
         for (int i = n / 2 - 1; i >= 0; i--) {
             desplazaElemento(datos, i, n - 1);
@@ -144,6 +215,7 @@ protected int obtenerPivote(int[] datos, int i, int j) {
                     ? mayorHijo(datos, hijoIzquierdo, hijoDerecho)
                     : hijoIzquierdo;
 
+            contarComparacion();
             if (datos[actual] < datos[mayor]) {
                 intercambiar(datos, actual, mayor);
                 actual = mayor;
@@ -334,8 +406,126 @@ protected int obtenerPivote(int[] datos, int i, int j) {
 
 
     private int mayorHijo(int[] datos, int primerHijo, int segundoHijo) {
+        contarComparacion();
         return datos[primerHijo] >= datos[segundoHijo] ? primerHijo : segundoHijo;
     }
 
+    public void insercionDirecta(Transaccion[] datos) {
+        reiniciarContadores();
+        for (int i = 1; i < datos.length; i++) {
+            Transaccion aux = datos[i];
+            int anterior = i - 1;
+            while (anterior >= 0) {
+                contarComparacion();
+                if (aux.timestamp() < datos[anterior].timestamp()) {
+                    datos[anterior + 1] = datos[anterior];
+                    contarMovimiento();
+                    anterior--;
+                } else {
+                    break;
+                }
+            }
+            datos[anterior + 1] = aux;
+            contarMovimiento();
+        }
+    }
+
+    public void quicksort(Transaccion[] datos) {
+        reiniciarContadores();
+        quicksort(datos, 0, datos.length - 1);
+    }
+
+    private void quicksort(Transaccion[] datos, int i, int j) {
+        if (i <= j) {
+            int indicePivote = obtenerPivote(datos, i, j);
+            if (indicePivote >= i && indicePivote < j) {
+                Transaccion pivote = datos[indicePivote];
+                int k = particion(datos, i, j, pivote);
+                quicksort(datos, i, k - 1);
+                quicksort(datos, k, j);
+            }
+        }
+    }
+
+    private int obtenerPivote(Transaccion[] datos, int i, int j) {
+        if (i >= j) {
+            return -1;
+        }
+
+        int medio = i + (j - i) / 2;
+        if (compararTransacciones(datos[i], datos[medio]) == 0
+                && compararTransacciones(datos[i], datos[j]) == 0) {
+            int distinto = i + 1;
+            while (distinto <= j && compararTransacciones(datos[distinto], datos[i]) == 0) {
+                distinto++;
+            }
+            if (distinto > j) {
+                return -1;
+            }
+            if (compararTransacciones(datos[i], datos[distinto]) > 0) {
+                return i;
+            }
+            if (distinto < j) {
+                return distinto;
+            }
+            intercambiar(datos, i, j);
+            return i;
+        }
+
+        int indiceMediana = medianaDeTres(datos, i, medio, j);
+        if (indiceMediana == j) {
+            intercambiar(datos, i, j);
+            return i;
+        }
+        return indiceMediana;
+    }
+
+    private int medianaDeTres(Transaccion[] datos, int a, int b, int c) {
+        if (compararTransacciones(datos[a], datos[b]) < 0) {
+            if (compararTransacciones(datos[b], datos[c]) < 0) {
+                return b;
+            }
+            return compararTransacciones(datos[a], datos[c]) < 0 ? c : a;
+        } else {
+            if (compararTransacciones(datos[a], datos[c]) < 0) {
+                return a;
+            }
+            return compararTransacciones(datos[b], datos[c]) < 0 ? c : b;
+        }
+    }
+
+    private int particion(Transaccion[] datos, int i, int j, Transaccion pivote) {
+        int izquierda = i;
+        int derecha = j;
+        while (izquierda <= derecha) {
+            while (compararTransacciones(datos[izquierda], pivote) < 0) {
+                izquierda++;
+            }
+            while (compararTransacciones(datos[derecha], pivote) > 0) {
+                derecha--;
+            }
+            if (izquierda <= derecha) {
+                intercambiar(datos, izquierda, derecha);
+                izquierda++;
+                derecha--;
+            }
+        }
+        return izquierda;
+    }
+
+    private int compararTransacciones(Transaccion a, Transaccion b) {
+        contarComparacion();
+        if (a.timestamp() != b.timestamp()) {
+            return Integer.compare(a.timestamp(), b.timestamp());
+        }
+        return Integer.compare(a.id(), b.id());
+    }
+
+    private void intercambiar(Transaccion[] datos, int i, int j) {
+        Transaccion aux = datos[i];
+        datos[i] = datos[j];
+        datos[j] = aux;
+        contarMovimiento();
+    }
 
 }

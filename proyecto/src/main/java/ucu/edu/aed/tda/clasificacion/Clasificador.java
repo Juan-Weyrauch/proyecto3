@@ -46,24 +46,29 @@ public class Clasificador extends TClasificador {
     }
 
     @Override
-    protected int obtenerPivote(int[] datos, int i, int j) {
-        if (j - i < 2) {
-            return i;
-        }
+protected int obtenerPivote(int[] datos, int i, int j) {
+    int distinto = i + 1;
 
-        int medio = i + (j - i) / 2;
-        int a = datos[i];
-        int b = datos[medio];
-        int c = datos[j];
-
-        if ((a <= b && b <= c) || (c <= b && b <= a)) {
-            return medio;
-        } else if ((b <= a && a <= c) || (c <= a && a <= b)) {
-            return i;
-        } else {
-            return medio;
-        }
+    while (distinto <= j && datos[distinto] == datos[i]) {
+        distinto++;
     }
+
+    if (distinto > j) {
+        return -1;  // Todo el rango tiene el mismo valor.
+    }
+
+    if (datos[i] > datos[distinto]) {
+        return i;
+    }
+
+    if (distinto < j) {
+        return distinto;
+    }
+
+    // El mayor está en j, pero el quicksort base exige un índice menor que j.
+    intercambiar(datos, i, j);
+    return i;
+}
     @Override
     protected int obtenerPivoteIngenuo(int[] datos, int i, int j) {
         if (i >= j) {

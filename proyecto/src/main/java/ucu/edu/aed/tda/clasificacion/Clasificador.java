@@ -8,7 +8,7 @@ public class Clasificador extends TClasificador {
         for (int i = 1; i < datos.length; i++) {
             int aux = datos[i];
             int anterior = (i - 1);
-            while ((anterior > 0) && (aux < datos[anterior])) {
+            while ((anterior >= 0) && (aux < datos[anterior])) {
                 datos[anterior + 1] = datos[anterior];
                 anterior--;
             }
@@ -47,15 +47,22 @@ public class Clasificador extends TClasificador {
 
     @Override
     protected int obtenerPivote(int[] datos, int i, int j) {
-        int[] aux = new int[3];
-
-        for(int valor = 0; valor <= 2; valor++){
-            aux[valor] = datos[valor];
+        if (j - i < 2) {
+            return i;
         }
 
-        int [] media = Arrays.stream(aux).sorted().toArray();
+        int medio = i + (j - i) / 2;
+        int a = datos[i];
+        int b = datos[medio];
+        int c = datos[j];
 
-        return media[1];
+        if ((a <= b && b <= c) || (c <= b && b <= a)) {
+            return medio;
+        } else if ((b <= a && a <= c) || (c <= a && a <= b)) {
+            return i;
+        } else {
+            return medio;
+        }
     }
 
     @Override
@@ -63,15 +70,19 @@ public class Clasificador extends TClasificador {
         int izquierda = i;
         int derecha = j;
 
-        do {
-            intercambiar(datos, izquierda, derecha);
+        while (izquierda <= derecha) {
             while (datos[izquierda] < pivote) {
-                izquierda = izquierda + 1;
+                izquierda++;
             }
-            while (datos[derecha] >= pivote) {
-                derecha = derecha - 1;
+            while (datos[derecha] > pivote) {
+                derecha--;
             }
-        } while (izquierda <= derecha);
+            if (izquierda <= derecha) {
+                intercambiar(datos, izquierda, derecha);
+                izquierda++;
+                derecha--;
+            }
+        }
 
         return izquierda;
     }
@@ -82,7 +93,7 @@ public class Clasificador extends TClasificador {
             int indiceDelMenor = i;
             int valorMenor = datos[i];
             for (int k = i + 1; k < datos.length; k++) {
-                if (valorMenor < datos[k]) {
+                if (datos[k] < valorMenor) {
                     indiceDelMenor = k;
                     valorMenor = datos[k];
                 }
@@ -93,33 +104,31 @@ public class Clasificador extends TClasificador {
 
     @Override
     public void heapsort(int[] datos) {
-        int n = datos.length - 1;
-        for (int i = n / 2; i >= 1; i--) {
-            desplazaElemento(datos, i, n);
+        int n = datos.length;
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            desplazaElemento(datos, i, n - 1);
         }
-        for (int k = n; k >= 2; k--) {
-            intercambiar(datos, 1, k);
-            desplazaElemento(datos, 1, k - 1);
+        for (int k = n - 1; k >= 1; k--) {
+            intercambiar(datos, 0, k);
+            desplazaElemento(datos, 0, k - 1);
         }
     }
 
     @Override
     protected void desplazaElemento(int[] datos, int primero, int ultimo) {
         int actual = primero;
-        while (actual <= (ultimo / 2)) {
-            if (ultimo == (2 * actual)) { //si actual tiene hijo
-                if (datos[actual] > datos[2 * actual]) {
-                    intercambiar(datos, actual, actual * 2);
-                }
-                actual = ultimo;
+        while (2 * actual + 1 <= ultimo) {
+            int hijoIzquierdo = 2 * actual + 1;
+            int hijoDerecho = hijoIzquierdo + 1;
+            int mayor = (hijoDerecho <= ultimo)
+                    ? mayorHijo(datos, hijoIzquierdo, hijoDerecho)
+                    : hijoIzquierdo;
+
+            if (datos[actual] < datos[mayor]) {
+                intercambiar(datos, actual, mayor);
+                actual = mayor;
             } else {
-                int menor = menorHijo(datos, (2 * actual), (2 * actual + 1));
-                if (datos[actual] > datos[menor]) {
-                    intercambiar(datos, actual, menor);
-                    actual = menor;
-                } else {
-                    actual = ultimo;
-                }
+                break;
             }
         }
     }
@@ -304,8 +313,8 @@ public class Clasificador extends TClasificador {
     }
 
 
-    private int menorHijo(int[] datos, int primerHijo, int segundoHijo) {
-        return datos[primerHijo] <= datos[segundoHijo] ? primerHijo : segundoHijo;
+    private int mayorHijo(int[] datos, int primerHijo, int segundoHijo) {
+        return datos[primerHijo] >= datos[segundoHijo] ? primerHijo : segundoHijo;
     }
 
 
